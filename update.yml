@@ -1,7 +1,9 @@
 ---
 - name: Update and upgrade Ubuntu system
   hosts: all
-  become: yes
+  become: yes  
+  become_method: sudo  
+  become_user: root  
 
   tasks:
     - name: Update apt cache
