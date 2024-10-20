@@ -1,23 +1,51 @@
 ---
+# Define el inicio del playbook.
+
 - name: Update and upgrade Ubuntu system
+  # Define el nombre de esta tarea principal. Solo sirve para identificar la tarea en los registros de ejecución.
   hosts: all
-  become: yes  
-  become_method: sudo  
-  become_user: root  
+  # Define el grupo de hosts (servidores) en los que se ejecutarán las tareas. En este caso, 'all' significa que se ejecutará en todos los hosts definidos en el inventario.
+  
+  become: yes
+  # Indica que todas las tareas que se ejecuten en este playbook requerirán privilegios elevados (superusuario/root).
+  
+  become_method: sudo
+  # Define el método para elevar privilegios. En este caso, 'sudo' (el comando sudo será usado para ejecutar las tareas con permisos de administrador).
+
+  become_user: root
+  # Especifica que el usuario con el que se deben ejecutar las tareas será 'root'. (Si no se especifica, por defecto se asume root cuando se usa become).
 
   tasks:
+    # Bloque de tareas donde se define qué acciones se van a realizar.
+
     - name: Update apt cache
+      # Nombre de la primera tarea. Se encargará de actualizar la caché de paquetes de `apt`.
       apt:
         update_cache: yes
+        # El módulo 'apt' se usa para gestionar paquetes en distribuciones basadas en Debian (como Ubuntu).
+        # 'update_cache: yes' le indica a `apt` que debe actualizar la caché de paquetes. Esto es equivalente a ejecutar `sudo apt update`.
 
     - name: Upgrade all packages
+      # Nombre de la segunda tarea. Se encargará de actualizar todos los paquetes del sistema.
       apt:
         upgrade: dist
+        # El módulo 'apt' se usa nuevamente para realizar la actualización de los paquetes.
+        # 'upgrade: dist' realiza una actualización completa de los paquetes instalados, similar a `sudo apt dist-upgrade`.
         autoremove: yes
+        # 'autoremove: yes' elimina automáticamente los paquetes que ya no son necesarios (equivalente a `sudo apt autoremove`).
         autoclean: yes
+        # 'autoclean: yes' limpia los archivos temporales descargados para liberar espacio en disco (equivalente a `sudo apt autoclean`).
 
     - name: Reboot the server if needed
+      # Nombre de la tercera tarea. Reinicia el servidor si es necesario (por ejemplo, tras una actualización del kernel).
       reboot:
         msg: "Reboot initiated by Ansible if required"
+        # Muestra el mensaje en el servidor antes de reiniciar. Este mensaje aparecerá en los logs.
         reboot_timeout: 600
+        # Tiempo máximo en segundos para que el servidor reinicie y esté nuevamente accesible por Ansible (10 minutos).
+        
       when: ansible_facts['os_family'] == "Debian" and ansible_facts['distribution'] == "Ubuntu"
+      # Esta tarea de reinicio solo se ejecutará si el sistema operativo es una distribución basada en Debian (como Ubuntu).
+      # 'ansible_facts' es un diccionario que contiene información del sistema recolectada por Ansible.
+
+
