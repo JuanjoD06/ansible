@@ -1,0 +1,21 @@
+- name: Configurar y actualizar Ubuntu en la VM
+  hosts: ubuntu_vm
+  become: yes
+  tasks:
+    - name: Actualizar lista de paquetes
+      apt:
+        update_cache: yes
+
+    - name: Actualizar paquetes
+      apt:
+        upgrade: dist
+        autoremove: yes
+
+    - name: Instalar paquetes necesarios
+      apt:
+        name:
+          - curl
+          - git
+          - vim
+          - htop
+        state: present
