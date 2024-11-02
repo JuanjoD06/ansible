@@ -1,21 +1,32 @@
-- name: Configurar y actualizar Ubuntu en la VM
-  hosts: ubuntu_vm
-  become: yes
+- name: Crear VM Ubuntu en VirtualBox
+  hosts: local
   tasks:
-    - name: Actualizar lista de paquetes
-      apt:
-        update_cache: yes
+    - name: Crear máquina virtual en VirtualBox
+      ansible.builtin.command:
+        cmd: >
+          VBoxManage createvm --name "Ubuntu_VM" --ostype "Ubuntu_64" --register
 
-    - name: Actualizar paquetes
-      apt:
-        upgrade: dist
-        autoremove: yes
+    - name: Configurar memoria y CPU de la VM
+      ansible.builtin.command:
+        cmd: >
+          VBoxManage modifyvm "Ubuntu_VM" --memory 2048 --cpus 2
 
-    - name: Instalar paquetes necesarios
-      apt:
-        name:
-          - curl
-          - git
-          - vim
-          - htop
-        state: present
+    - name: Agregar almacenamiento a la VM
+      ansible.builtin.command:
+        cmd: >
+          VBoxManage createhd --filename ~/VirtualBox\ VMs/Ubuntu_VM/Ubuntu_VM.vdi --size 20000
+
+    - name: Adjuntar almacenamiento a la VM
+      ansible.builtin.command:
+        cmd: >
+          VBoxManage storagectl "Ubuntu_VM" --name "SATA Controller" --add sata --controller IntelAhci
+
+    - name: Adjuntar disco duro a la VM
+      ansible.builtin.command:
+        cmd: >
+          VBoxManage storageattach "Ubuntu_VM" --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium ~/VirtualBox\ VMs/Ubuntu_VM/Ubuntu_VM.vdi
+
+    - name: Adjuntar archivo ISO para instalación
+      ansible.builtin.command:
+        cmd: >
+          VBoxManage storageattach "Ubuntu_VM" --storagectl "SATA Controller" --port 1 --device 0 --type dvddrive --medium /home/ansible/ubuntu-22.04.5-live-server-amd64.iso
