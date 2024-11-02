@@ -1,5 +1,6 @@
 - name: Crear VM Ubuntu en VirtualBox
   hosts: local
+  become: yes
   tasks:
     - name: Crear máquina virtual en VirtualBox
       ansible.builtin.command:
