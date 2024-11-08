@@ -1,7 +1,9 @@
 ---
 - name: Instalación de software
-  hosts: ubuntu_servers
+  hosts: all
   become: yes
+  become_method: sudo
+  become_user: root
 
 
   vars:
