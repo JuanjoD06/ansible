@@ -1,157 +1,125 @@
 ---
-- name: Instalación de software
-  hosts: all
-  become: yes
+- name: Playbook para instalación de software en Ubuntu Server
+  hosts: all  # Define el nombre del grupo de hosts en tu archivo de inventario
+  become: true
   become_method: sudo
   become_user: root
 
-
   vars:
-    - zabbix_version: "6.0"
-    - grafana_version: "9.3"
-    - mysql_root_password: "password_segura"
-    - postgresql_version: "14"
-    - apache_version: "2.4"
-    - nginx_version: "1.22"
-
+    mysql_root_password: "um2024"  # Define la contraseña de root para MySQL
+    postgresql_user: "postgres"
+    postgresql_password: "postgres_password"
+    zabbix_repo: "deb http://repo.zabbix.com/zabbix/6.0/ubuntu $(lsb_release -sc) main"
+    grafana_repo: "deb https://packages.grafana.com/oss/deb stable main"
 
   tasks:
+    - name: Actualizar los repositorios de apt y paquetes del sistema
+      apt:
+        update_cache: yes
+        upgrade: dist
+        cache_valid_time: 3600
 
+    - name: Instalar prerrequisitos generales
+      apt:
+        name: 
+          - software-properties-common
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
 
-  # Prerrequisitos
-  - name: Actualizar lista de paquetes
-    apt:
-      update_cache: yes
+    # --- INSTALACIÓN DE MYSQL ---
+    - name: Instalar MySQL y configurar root password
+      debconf:
+        name: "mysql-server"
+        question: "mysql-server/root_password"
+        value: "{{ mysql_root_password }}"
+        vtype: "password"
+        
+    - name: Instalar MySQL
+      apt:
+        name: mysql-server
+        state: present
 
-  - name: Instalar dependencias básicas
-    apt:
-      name:
-        - build-essential
-        - libssl-dev
-        - libncurses5-dev
-      state: present
+    - name: Asegurar MySQL esté en ejecución
+      service:
+        name: mysql
+        state: started
+        enabled: true
 
+    # --- INSTALACIÓN DE POSTGRESQL ---
+    - name: Instalar PostgreSQL
+      apt:
+        name: postgresql
+        state: present
 
-  # Zabbix
-  - name: Agregar clave de Zabbix
-    apt_key:
-      url: https://repo.zabbix.com/zabbix/6.0/ubuntu/conf/zabbix-release-ubuntu-all.deb
-      state: present
+    - name: Configurar password para usuario de PostgreSQL
+      shell: "psql -c \"ALTER USER {{ postgresql_user }} PASSWORD '{{ postgresql_password }}';\""
+      become_user: postgres
 
-  - name: Instalar Zabbix Server
-    apt:
-      name: zabbix-server-mysql
-      state: present
+    # --- INSTALACIÓN DE APACHE ---
+    - name: Instalar Apache
+      apt:
+        name: apache2
+        state: present
 
-  - name: Configurar Zabbix Server
-    template:
-      src: templates/zabbix_server.conf.j2
-      dest: /etc/zabbix/zabbix_server.conf
-    notify: restart zabbix-server
+    - name: Asegurar Apache esté en ejecución
+      service:
+        name: apache2
+        state: started
+        enabled: true
 
+    # --- INSTALACIÓN DE NGINX ---
+    - name: Instalar Nginx
+      apt:
+        name: nginx
+        state: present
 
-  # Grafana
-  - name: Agregar clave de Grafana
-    apt_key:
-      url: https://packages.grafana.com/gpg.key
-      state: present
+    - name: Asegurar Nginx esté en ejecución
+      service:
+        name: nginx
+        state: started
+        enabled: true
 
-  - name: Agregar repositorio de Grafana
-    apt_repository:
-      repo: 'https://packages.grafana.com/oss/deb'
-      state: present
+    # --- INSTALACIÓN DE ZABBIX ---
+    - name: Agregar repositorio de Zabbix
+      apt_repository:
+        repo: "{{ zabbix_repo }}"
+        state: present
 
-  - name: Instalar Grafana
-    apt:
-      name: grafana
-      state: present
+    - name: Instalar Zabbix Server y Zabbix Agent
+      apt:
+        name:
+          - zabbix-server-mysql
+          - zabbix-agent
+        state: present
 
-  - name: Configurar Grafana
-    template:
-      src: templates/grafana.ini.j2
-      dest: /etc/grafana/grafana.ini
-    notify: restart grafana-server
+    - name: Asegurar Zabbix esté en ejecución
+      service:
+        name: zabbix-server
+        state: started
+        enabled: true
 
+    # --- INSTALACIÓN DE GRAFANA ---
+    - name: Agregar clave GPG de Grafana
+      apt_key:
+        url: https://packages.grafana.com/gpg.key
+        state: present
 
-  # MySQL
-  - name: Instalar MySQL Server
-    apt:
-      name: mysql-server
-      state: present
+    - name: Agregar repositorio de Grafana
+      apt_repository:
+        repo: "{{ grafana_repo }}"
+        state: present
 
-  - name: Configurar MySQL
-    template:
-      src: templates/my.cnf.j2
-      dest: /etc/mysql/my.cnf
-    notify: restart mysql
+    - name: Instalar Grafana
+      apt:
+        name: grafana
+        state: present
 
-
-  # PostgreSQL
-  - name: Instalar PostgreSQL
-    apt:
-      name: postgresql-{{ postgresql_version }}
-      state: present
-
-  - name: Configurar PostgreSQL
-    template:
-      src: templates/postgresql.conf.j2
-      dest: /etc/postgresql/{{ postgresql_version }}/main/postgresql.conf
-    notify: restart postgresql
-
-
-  # Apache
-  - name: Instalar Apache
-    apt:
-      name: apache2
-      state: present
-
-  - name: Configurar Apache
-    template:
-      src: templates/apache2.conf.j2
-      dest: /etc/apache2/apache2.conf
-    notify: restart apache2
-
-
-  # Nginx
-  - name: Instalar Nginx
-    apt:
-      name: nginx
-      state: present
-
-  - name: Configurar Nginx
-    template:
-      src: templates/nginx.conf.j2
-      dest: /etc/nginx/nginx.conf
-    notify: restart nginx
-
-
-  handlers:
-  - name: restart zabbix-server
-    service:
-      name: zabbix-server
-      state: restarted
-
-  - name: restart grafana-server
-    service:
-      name: grafana-server
-      state: restarted
-
-  - name: restart mysql
-    service:
-      name: mysql
-      state: restarted
-
-  - name: restart postgresql
-    service:
-      name: postgresql
-      state: restarted
-
-  - name: restart apache2
-    service:
-      name: apache2
-      state: restarted
-
-  - name: restart nginx
-    service:
-      name: nginx
-      state: restarted
+    - name: Asegurar Grafana esté en ejecución
+      service:
+        name: grafana-server
+        state: started
+        enabled: true
