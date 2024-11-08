@@ -1,0 +1,155 @@
+---
+- name: Instalación de software
+  hosts: ubuntu_servers
+  become: yes
+
+
+  vars:
+    - zabbix_version: "6.0"
+    - grafana_version: "9.3"
+    - mysql_root_password: "password_segura"
+    - postgresql_version: "14"
+    - apache_version: "2.4"
+    - nginx_version: "1.22"
+
+
+  tasks:
+
+
+  # Prerrequisitos
+  - name: Actualizar lista de paquetes
+    apt:
+      update_cache: yes
+
+  - name: Instalar dependencias básicas
+    apt:
+      name:
+        - build-essential
+        - libssl-dev
+        - libncurses5-dev
+      state: present
+
+
+  # Zabbix
+  - name: Agregar clave de Zabbix
+    apt_key:
+      url: https://repo.zabbix.com/zabbix/6.0/ubuntu/conf/zabbix-release-ubuntu-all.deb
+      state: present
+
+  - name: Instalar Zabbix Server
+    apt:
+      name: zabbix-server-mysql
+      state: present
+
+  - name: Configurar Zabbix Server
+    template:
+      src: templates/zabbix_server.conf.j2
+      dest: /etc/zabbix/zabbix_server.conf
+    notify: restart zabbix-server
+
+
+  # Grafana
+  - name: Agregar clave de Grafana
+    apt_key:
+      url: https://packages.grafana.com/gpg.key
+      state: present
+
+  - name: Agregar repositorio de Grafana
+    apt_repository:
+      repo: 'https://packages.grafana.com/oss/deb'
+      state: present
+
+  - name: Instalar Grafana
+    apt:
+      name: grafana
+      state: present
+
+  - name: Configurar Grafana
+    template:
+      src: templates/grafana.ini.j2
+      dest: /etc/grafana/grafana.ini
+    notify: restart grafana-server
+
+
+  # MySQL
+  - name: Instalar MySQL Server
+    apt:
+      name: mysql-server
+      state: present
+
+  - name: Configurar MySQL
+    template:
+      src: templates/my.cnf.j2
+      dest: /etc/mysql/my.cnf
+    notify: restart mysql
+
+
+  # PostgreSQL
+  - name: Instalar PostgreSQL
+    apt:
+      name: postgresql-{{ postgresql_version }}
+      state: present
+
+  - name: Configurar PostgreSQL
+    template:
+      src: templates/postgresql.conf.j2
+      dest: /etc/postgresql/{{ postgresql_version }}/main/postgresql.conf
+    notify: restart postgresql
+
+
+  # Apache
+  - name: Instalar Apache
+    apt:
+      name: apache2
+      state: present
+
+  - name: Configurar Apache
+    template:
+      src: templates/apache2.conf.j2
+      dest: /etc/apache2/apache2.conf
+    notify: restart apache2
+
+
+  # Nginx
+  - name: Instalar Nginx
+    apt:
+      name: nginx
+      state: present
+
+  - name: Configurar Nginx
+    template:
+      src: templates/nginx.conf.j2
+      dest: /etc/nginx/nginx.conf
+    notify: restart nginx
+
+
+  handlers:
+  - name: restart zabbix-server
+    service:
+      name: zabbix-server
+      state: restarted
+
+  - name: restart grafana-server
+    service:
+      name: grafana-server
+      state: restarted
+
+  - name: restart mysql
+    service:
+      name: mysql
+      state: restarted
+
+  - name: restart postgresql
+    service:
+      name: postgresql
+      state: restarted
+
+  - name: restart apache2
+    service:
+      name: apache2
+      state: restarted
+
+  - name: restart nginx
+    service:
+      name: nginx
+      state: restarted
