@@ -7,10 +7,7 @@
 
   vars:
     mysql_root_password: "juan"  # Define la contraseña de root para MySQL
-    postgresql_user: "postgres"
-    postgresql_password: "juan"
-    zabbix_repo: "http://repo.zabbix.com/zabbix/6.0/ubuntu {{ ansible_distribution_release }} main"
-    grafana_repo: "https://packages.grafana.com/oss/deb stable main"
+    zabbix_repo: "https://repo.zabbix.com/zabbix/7.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest+ubuntu22.04_all.deb"
 
   tasks:
     - name: Actualizar los repositorios de apt y paquetes del sistema
@@ -48,7 +45,8 @@
         name: mysql
         state: started
         enabled: true
-
+        retries: 3
+        delay: 5
 
     # --- INSTALACIÓN DE APACHE ---
     - name: Instalar Apache
@@ -61,6 +59,8 @@
         name: apache2
         state: started
         enabled: true
+        retries: 3
+        delay: 5
 
     # --- INSTALACIÓN DE ZABBIX ---
     - name: Agregar repositorio de Zabbix
@@ -80,5 +80,7 @@
         name: zabbix-server
         state: started
         enabled: true
+        retries: 3
+        delay: 5
 
 
