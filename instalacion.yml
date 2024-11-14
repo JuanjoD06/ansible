@@ -49,16 +49,7 @@
         state: started
         enabled: true
 
-    # --- INSTALACIÓN DE POSTGRESQL ---
-    - name: Instalar PostgreSQL
-      apt:
-        name: postgresql
-        state: present
 
-    - name: Configurar password para usuario de PostgreSQL
-      shell: "psql -c \"ALTER USER {{ postgresql_user }} PASSWORD '{{ postgresql_password }}';\""
-      become: true
-      become_user: postgres
     # --- INSTALACIÓN DE APACHE ---
     - name: Instalar Apache
       apt:
@@ -68,18 +59,6 @@
     - name: Asegurar Apache esté en ejecución
       service:
         name: apache2
-        state: started
-        enabled: true
-
-    # --- INSTALACIÓN DE NGINX ---
-    - name: Instalar Nginx
-      apt:
-        name: nginx
-        state: present
-
-    - name: Asegurar Nginx esté en ejecución
-      service:
-        name: nginx
         state: started
         enabled: true
 
@@ -102,24 +81,4 @@
         state: started
         enabled: true
 
-    # --- INSTALACIÓN DE GRAFANA ---
-    - name: Agregar clave GPG de Grafana
-      apt_key:
-        url: https://packages.grafana.com/gpg.key
-        state: present
 
-    - name: Agregar repositorio de Grafana
-      apt_repository:
-        repo: "{{ grafana_repo }}"
-        state: present
-
-    - name: Instalar Grafana
-      apt:
-        name: grafana
-        state: present
-
-    - name: Asegurar Grafana esté en ejecución
-      service:
-        name: grafana-server
-        state: started
-        enabled: true
