@@ -1,35 +1,44 @@
 ---
-- name: Desplegar contenedor sencillo en Ubuntu
-  hosts: all
-  become: yes
+- name: Crear un contenedor Docker con Alpine
+  hosts: all # Define tu grupo de hosts
+  become: yes  # Asegúrate de que el playbook tenga privilegios de root
 
   vars:
-    container_name: "mi_contenedor"
-    container_image: "nginx:latest"
-    container_port: 80
+    container_name: "alpine_simple"  # Nombre del contenedor
+    container_image: "alpine:latest"  # Imagen de Alpine (ligera)
+    container_port: 80  # Puerto en el contenedor (pero no se utilizará en este caso)
 
   tasks:
-    - name: Instalar Docker
+    - name: Instalar Docker si no está instalado
       apt:
         name: docker.io
         state: present
+        update_cache: yes
 
-    - name: Iniciar Docker
+    - name: Asegurarse de que Docker esté en ejecución
       service:
         name: docker
         state: started
         enabled: yes
 
-    - name: Descargar imagen de Docker
+    - name: Descargar la imagen de Docker (Alpine)
       docker_image:
         name: "{{ container_image }}"
         source: pull
 
-    - name: Crear y ejecutar contenedor
+    - name: Crear y ejecutar el contenedor Alpine
       docker_container:
         name: "{{ container_name }}"
         image: "{{ container_image }}"
-        ports:
-          - "{{ container_port }}:80"
         state: started
-        restart: unless-stopped
+        restart: always
+        detach: true  # Ejecutar el contenedor en segundo plano
+
+    - name: Verificar si el contenedor está en ejecución
+      docker_container_info:
+        name: "{{ container_name }}"
+      register: container_info
+
+    - name: Mostrar información del contenedor
+      debug:
+        var: container_info
