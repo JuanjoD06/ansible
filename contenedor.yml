@@ -1,7 +1,9 @@
 ---
 - name: Crear un contenedor Docker con Alpine
   hosts: all # Define tu grupo de hosts
-  become: yes  # Asegúrate de que el playbook tenga privilegios de root
+  become: true
+  become_method: sudo
+  become_user: root  # Asegúrate de que el playbook tenga privilegios de root
 
   vars:
     container_name: "alpine_simple"  # Nombre del contenedor
