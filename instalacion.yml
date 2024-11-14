@@ -56,7 +56,9 @@
         state: present
 
     - name: Configurar password para usuario de PostgreSQL
-      shell: "psql -c \"ALTER USER {{ postgresql_user }} PASSWORD '{{ postgresql_password }}';\""
+      shell: "psql -c \"ALTER USER {{ postgres }} PASSWORD '{{ postgres }}';\""
+      become: true
+      become_method: sudo
       become_user: postgres
 
     # --- INSTALACIÓN DE APACHE ---
