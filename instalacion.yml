@@ -7,7 +7,6 @@
 
   vars:
     mysql_root_password: "juan"  # Define la contraseña de root para MySQL
-    zabbix_repo: "https://repo.zabbix.com/zabbix/7.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest+ubuntu22.04_all.deb"
 
   tasks:
     - name: Actualizar los repositorios de apt y paquetes del sistema
@@ -62,25 +61,20 @@
         retries: 3
         delay: 5
 
-    # --- INSTALACIÓN DE ZABBIX ---
-    - name: Agregar repositorio de Zabbix
-      apt_repository:
-        repo: "{{ zabbix_repo }}"
-        state: present
-
-    - name: Instalar Zabbix Server y Zabbix Agent
+    # --- INSTALACIÓN DE SSH ---
+    - name: Instalar servidor SSH
       apt:
-        name:
-          - zabbix-server-mysql
-          - zabbix-agent
+        name: openssh-server
         state: present
 
-    - name: Asegurar Zabbix esté en ejecución
+    - name: Asegurar el servicio SSH esté en ejecución
       service:
-        name: zabbix-server
+        name: ssh
         state: started
         enabled: true
         retries: 3
         delay: 5
+
+
 
 
