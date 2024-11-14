@@ -56,8 +56,6 @@
         name: apache2
         state: started
         enabled: true
-        retries: 3
-        delay: 5
 
     # --- INSTALACIÓN DE SSH ---
     - name: Instalar servidor SSH
@@ -70,8 +68,6 @@
         name: ssh
         state: started
         enabled: true
-        retries: 3
-        delay: 5
 
 
 
