@@ -6,11 +6,11 @@
   become_user: root
 
   vars:
-    mysql_root_password: "um2024"  # Define la contraseña de root para MySQL
+    mysql_root_password: "juan"  # Define la contraseña de root para MySQL
     postgresql_user: "postgres"
-    postgresql_password: "postgres_password"
-    zabbix_repo: "deb http://repo.zabbix.com/zabbix/6.0/ubuntu $(lsb_release -sc) main"
-    grafana_repo: "deb https://packages.grafana.com/oss/deb stable main"
+    postgresql_password: "juan"
+    zabbix_repo: "http://repo.zabbix.com/zabbix/6.0/ubuntu {{ ansible_distribution_release }} main"
+    grafana_repo: "https://packages.grafana.com/oss/deb stable main"
 
   tasks:
     - name: Actualizar los repositorios de apt y paquetes del sistema
@@ -56,7 +56,7 @@
         state: present
 
     - name: Configurar password para usuario de PostgreSQL
-      shell: "psql -c \"ALTER USER {{ postgres }} PASSWORD '{{ postgres }}';\""
+      shell: "psql -c \"ALTER USER {{ postgresql_user }} PASSWORD '{{ postgresql_password }}';\""
       become_user: postgres
 
     # --- INSTALACIÓN DE APACHE ---
