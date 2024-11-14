@@ -1,9 +1,11 @@
 ---
 - name: Playbook para instalación de software en Ubuntu Server
   hosts: all  # Define el nombre del grupo de hosts en tu archivo de inventario
-  become: true
-  become_method: sudo
-  become_user: root
+  become: yes
+  shell: |
+    sudo apt update
+    sudo apt install -y docker.io
+
 
   vars:
     mysql_root_password: "juan"  # Define la contraseña de root para MySQL
