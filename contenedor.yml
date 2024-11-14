@@ -1,43 +1,35 @@
 ---
-- name: Desplegar contenedor en Ubuntu
-  hosts: ubuntu_servers
+- name: Desplegar contenedor sencillo en Ubuntu
+  hosts: all
   become: yes
 
   vars:
-    - container_name: "mi_contenedor"
-    - container_image: "nginx:latest"
-    - container_port: 80
+    container_name: "mi_contenedor"
+    container_image: "nginx:latest"
+    container_port: 80
 
   tasks:
-  - name: Instalar Docker
-    apt:
-      name: docker.io
-      state: present
+    - name: Instalar Docker
+      apt:
+        name: docker.io
+        state: present
 
-  - name: Iniciar Docker
-    service:
-      name: docker
-      state: started
-      enabled: yes
+    - name: Iniciar Docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
 
-  - name: Descargar imagen del contenedor
-    docker_image:
-      name: "{{ container_image }}"
-      source: pull
+    - name: Descargar imagen de Docker
+      docker_image:
+        name: "{{ container_image }}"
+        source: pull
 
-  - name: Crear y iniciar contenedor
-    docker_container:
-      name: "{{ container_name }}"
-      image: "{{ container_image }}"
-      ports:
-        - "{{ container_port }}:80"
-      state: started
-      restart: always
-
-  - name: Verificar que el contenedor esté en ejecución
-    docker_container_info:
-      name: "{{ container_name }}"
-    register: container_info
-    until: container_info.container.State.Running
-    retries: 5
-    delay: 10
+    - name: Crear y ejecutar contenedor
+      docker_container:
+        name: "{{ container_name }}"
+        image: "{{ container_image }}"
+        ports:
+          - "{{ container_port }}:80"
+        state: started
+        restart: unless-stopped
