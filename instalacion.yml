@@ -57,7 +57,6 @@
 
     - name: Configurar password para usuario de PostgreSQL
       shell: "psql -c \"ALTER USER {{ postgresql_user }} PASSWORD '{{ postgresql_password }}';\""
-      become_user: postgres
 
     # --- INSTALACIÓN DE APACHE ---
     - name: Instalar Apache
