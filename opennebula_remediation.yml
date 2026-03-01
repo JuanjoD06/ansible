@@ -1,7 +1,7 @@
 - hosts: opennebula
   become: false
   vars:
-    vm_id: "{{ 5 }}"
+    vm_id: 5
   tasks:
 
     - name: Verificar estado actual de la VM
