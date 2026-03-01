@@ -26,6 +26,6 @@
 
     - name: Registrar evento de remediación
       lineinfile:
-        path: /home/juan/selfhealing.log
+        path: /home/automation/selfhealing.log
         line: "VM {{ vm_id }} remediada automáticamente"
         create: yes
