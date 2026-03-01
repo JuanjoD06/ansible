@@ -1,4 +1,4 @@
-- hosts: opennebula
+- hosts: 192.168.1.86
   become: false
   vars:
     vm_id: 5
