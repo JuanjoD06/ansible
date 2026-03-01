@@ -1,0 +1,23 @@
+- hosts: opennebula
+  become: false
+  vars:
+    vm_id: "{{ 5 }}"
+  tasks:
+
+    - name: Verificar estado actual de la VM
+      shell: onevm show {{ vm_id }}
+      register: vm_info
+
+    - name: Crear snapshot antes de remediar
+      shell: onevm snapshot-create {{ vm_id }} "pre-remediation"
+      register: snapshot_result
+
+    - name: Reiniciar VM comprometida
+      shell: onevm reboot {{ vm_id }}
+      register: reboot_result
+
+    - name: Registrar evento de remediación
+      lineinfile:
+        path: /home/juan/selfhealing.log
+        line: "VM {{ vm_id }} remediada automáticamente"
+        create: yes
