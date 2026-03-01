@@ -20,9 +20,6 @@
       delay: 5
       until: "'RUNNING' in vm_state.stdout"
 
-    - name: Reiniciar VM comprometida
-      command: onevm reboot {{ vm_id }}
-      register: reboot_result
 
     - name: Registrar evento de remediación
       lineinfile:
